@@ -10,6 +10,8 @@ import skvideo.utils
 
 import skimage
 
+import scipy
+
 from matplotlib import pyplot as plt
 
 
@@ -56,7 +58,7 @@ def main():
 
     parser.add_argument(
         "-k",
-        help="Number of singular values to remove",
+        help="Number of singular values to keep to get the background",
         type=int,
         default=2
     )
@@ -75,31 +77,49 @@ def main():
     video_gen = skvideo.io.vreader(args.filename)
 
     for frames in itertools.batched(video_gen, args.batch_size):
-        (height, width, n_chan) = frames[0].shapei
-        skimage.transform.resize()
+        # XXX: Recreating a matrix like this every time is expensive
+        frame_mat = np.ndarray(shape=(args.height * args.width, args.batch_size))
 
-        # Recreating a matrix like this every time is expensive
-        frame_mat = np.ndarray(shape=(height * width, args.batch_size))
+        for i in range(args.batch_size):
+            # frames[i].shape = (height, width, n_chan)
+            #
+            # YUV444P has three channels: Y (luma), U (blue difference), V (green difference)
+            # We only use the luma channel (0) when applying SVD
+            frame_luma = frames[i][:, :, 0]
+            frame_luma_resized = skimage.transform.resize(
+                frame_luma,
+                (args.height, args.width)
+            )
 
-        for (index, frame) in frames.enumerate():
-            frame_mat[:, index] = frame
+            frame_mat[:, i] = np.reshape(frame_luma_resized / 255, args.height * args.width)
 
         if args.use_builtin:
             u, s, vt = np.linalg.svd(frame_mat)
         else:
             # u, s, vt = svd(frame_mat)
-            ...
+            raise NotImplementedError("SVD hasn't been implemented yet :(")
 
-        fg_mat = np.zeros_like(frame_mat)
-        mask_mat = np.zeros_like(frame_mat)
+        # Dynamic elements matrix -> mask
+        dyn_mat = np.zeros_like(frame_mat)
+        # Static elements matrix (similar to, but not quite a, background)
+        sta_mat = np.zeros_like(frame_mat)
 
-        for i in range(k):
-            ...
+        for i in range(args.k):
+            sta_mat += s[i] * np.outer(u[:, i], vt[i, :])
 
-            skimage.segmentation.flood()
+        dyn_mat = np.abs(frame_mat - sta_mat)
 
         for index in range(args.batch_size):
-            ...
+            # Process each frame mask
+            frame_mask = np.reshape(dyn_mat[:, index], (args.height, args.width))
+            bin_mask = np.round(frame_mask)
+
+            filled_mask = scipy.ndimage.binary_fill_holes(bin_mask)
+
+            plt.imshow(filled_mask, cmap="gray", vmax=1.)
+            plt.show()
+
+            break
 
 
 if __name__ == "__main__":
