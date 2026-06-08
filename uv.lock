@@ -12,6 +12,7 @@ dependencies = [
     { name = "numpy" },
     { name = "scikit-image" },
     { name = "scikit-video" },
+    { name = "scipy" },
 ]
 
 [package.metadata]
@@ -21,6 +22,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "scikit-image", specifier = ">=0.26.0" },
     { name = "scikit-video", git = "https://github.com/scikit-video/scikit-video.git" },
+    { name = "scipy", specifier = ">=1.17.1" },
 ]
 
 [[package]]

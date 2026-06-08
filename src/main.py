@@ -88,6 +88,7 @@ def main():
             u, s, vt = np.linalg.svd(frame_mat)
         else:
             # u, s, vt = svd(frame_mat)
+            ...
 
         fg_mat = np.zeros_like(frame_mat)
         mask_mat = np.zeros_like(frame_mat)
