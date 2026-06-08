@@ -12,7 +12,7 @@ def Find_Max_Symetric(A: npt.NDArray[np.float64]) -> tuple[np.float64, int, int]
     #np.nditer(A, flags=["external_loop"], order='C')
     print(A)
     for row in A:
-        j = np.abs(row[index:]).argmax()
+        j = np.abs(row[index:]).argmax() + index
         wow = abs(row[j])
         if max < wow:
             max = wow
