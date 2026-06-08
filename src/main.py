@@ -3,9 +3,12 @@ from argparse import ArgumentParser
 import itertools
 
 import numpy as np
+
 import skvideo
 import skvideo.io
 import skvideo.utils
+
+import skimage
 
 from matplotlib import pyplot as plt
 
@@ -26,13 +29,34 @@ def main():
     parser.add_argument(
         "-C", "--transparent-color",
         help="Color to replace transparent sections with (RGB hex format)",
-        type=str
+        type=str,
+        default="#ff60d0"
     )
 
     parser.add_argument(
         "-u", "--use-builtin",
         help="Use built-in library functions rather than our SVD implementation",
-        action="store_true"
+        action="store_true",
+        default=False
+    )
+
+    parser.add_argument(
+        "-w", "--width",
+        help="Width to use when processing the video file",
+        type=int,
+        default=200
+    )
+
+    parser.add_argument(
+        "-h", "--height",
+        help="Height to use when processing the video file",
+        type=int,
+        default=100
+    )
+
+    parser.add_argument(
+        "-k",
+        help="Number of "
     )
 
     parser.add_argument(
@@ -58,10 +82,14 @@ def main():
 
         if args.use_builtin:
             u, s, vt = np.linalg.svd(frame_mat)
+
+            ...
         else:
             ...
             # u, s, vt = svd()
             # mask_mat = trunc(sigma, u, v, k)
+
+            skimage.segmentation.flood()
 
         for index in range(args.batch_size):
             ...
