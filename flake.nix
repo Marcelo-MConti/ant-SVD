@@ -36,6 +36,8 @@
             uv sync
             . .venv/bin/activate
           '';
+
+          LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.zlib}/lib";
         };
       };
     };
