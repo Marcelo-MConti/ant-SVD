@@ -12,7 +12,7 @@ def Find_Max_Symetric(A: npt.NDArray[np.float64]) -> tuple[np.float64, int, int]
     #np.nditer(A, flags=["external_loop"], order='C')
     print(A)
     for row in A:
-        j = row[index:].argmax()
+        j = np.abs(row[index:]).argmax()
         wow = abs(row[j])
         if max < wow:
             max = wow
@@ -69,3 +69,5 @@ def Jacobi_Decomposition(A: npt.NDArray[np.float64], tol = 1e-9) -> tuple[npt.ND
 
     return (Ak, V)
 #end
+
+
