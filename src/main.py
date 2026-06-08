@@ -41,14 +41,14 @@ def main():
     )
 
     parser.add_argument(
-        "-w", "--width",
+        "-W", "--width",
         help="Width to use when processing the video file",
         type=int,
         default=200
     )
 
     parser.add_argument(
-        "-h", "--height",
+        "-H", "--height",
         help="Height to use when processing the video file",
         type=int,
         default=100
@@ -56,7 +56,9 @@ def main():
 
     parser.add_argument(
         "-k",
-        help="Number of "
+        help="Number of singular values to remove",
+        type=int,
+        default=2
     )
 
     parser.add_argument(
@@ -73,8 +75,10 @@ def main():
     video_gen = skvideo.io.vreader(args.filename)
 
     for frames in itertools.batched(video_gen, args.batch_size):
-        (height, width, n_chan) = frames[0].shape
+        (height, width, n_chan) = frames[0].shapei
+        skimage.transform.resize()
 
+        # Recreating a matrix like this every time is expensive
         frame_mat = np.ndarray(shape=(height * width, args.batch_size))
 
         for (index, frame) in frames.enumerate():
@@ -82,12 +86,14 @@ def main():
 
         if args.use_builtin:
             u, s, vt = np.linalg.svd(frame_mat)
-
-            ...
         else:
+            # u, s, vt = svd(frame_mat)
+
+        fg_mat = np.zeros_like(frame_mat)
+        mask_mat = np.zeros_like(frame_mat)
+
+        for i in range(k):
             ...
-            # u, s, vt = svd()
-            # mask_mat = trunc(sigma, u, v, k)
 
             skimage.segmentation.flood()
 
