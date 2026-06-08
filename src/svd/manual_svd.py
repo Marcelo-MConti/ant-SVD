@@ -1,4 +1,5 @@
 import numpy as np
+from jacob import Jacobi_Decomposition
 
 def Sort_by_eigenvalue_desc(eigenValues, eigenVectors):
     idx = np.argsort(eigenValues)[::-1]
@@ -34,7 +35,7 @@ def SVD_decomposition(A, tolerance = 1e-15, maxIterations=6767):
 
     ATA = A.T @ A
 
-    eigenValueSquare, eigenVectors = Jacobi_decomposition(ATA, tolerance, maxIterations)
+    eigenValueSquare, eigenVectors = Jacobi_Decomposition(ATA, tolerance, maxIterations)
     
     eigenValues = np.sqrt(np.maximum(eigenValueSquare, 0.))
 
