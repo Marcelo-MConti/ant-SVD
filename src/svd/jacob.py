@@ -67,7 +67,7 @@ def Jacobi_Decomposition(A: npt.NDArray[np.float64], tol = 1e-9) -> tuple[npt.ND
         U[q][q] = 0
         (max, p, q) = Find_Max_Symetric(Ak)
 
-    return (Ak, V)
+    return (np.diag(Ak), V)
 #end
 
 

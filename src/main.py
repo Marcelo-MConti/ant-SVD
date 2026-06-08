@@ -14,6 +14,8 @@ import scipy
 
 from matplotlib import pyplot as plt
 
+from svd.manual_svd import SVD_decomposition
+
 
 def main():
     parser = ArgumentParser(
@@ -25,7 +27,7 @@ def main():
         "-b", "--batch-size",
         help="How many frames are processed per batch",
         type=int,
-        default=60
+        default=15
     )
 
     parser.add_argument(
@@ -46,14 +48,14 @@ def main():
         "-W", "--width",
         help="Width to use when processing the video file",
         type=int,
-        default=200
+        default=120
     )
 
     parser.add_argument(
         "-H", "--height",
         help="Height to use when processing the video file",
         type=int,
-        default=100
+        default=80
     )
 
     parser.add_argument(
@@ -70,7 +72,7 @@ def main():
 
     args = parser.parse_args()
 
-    if args.batch_size < 30 or args.batch_size > 60:
+    if args.batch_size < 15 or args.batch_size > 60:
         raise ValueError("Invalid value for batch_size, must be between 30 and 60 frames")
 
     # Iterador dos frames do vídeo no formato YUV444P
@@ -92,12 +94,16 @@ def main():
             )
 
             frame_mat[:, i] = np.reshape(frame_luma_resized / 255, args.height * args.width)
+            print(f"Processed frame {i}")
+
+        print("---")
 
         if args.use_builtin:
             u, s, vt = np.linalg.svd(frame_mat)
         else:
-            # u, s, vt = svd(frame_mat)
-            raise NotImplementedError("SVD hasn't been implemented yet :(")
+            u, s, vt = SVD_decomposition(frame_mat)
+
+        print("+++")
 
         # Dynamic elements matrix -> mask
         dyn_mat = np.zeros_like(frame_mat)
@@ -109,17 +115,18 @@ def main():
 
         dyn_mat = np.abs(frame_mat - sta_mat)
 
-        for index in range(args.batch_size):
+        for i in range(args.batch_size):
             # Process each frame mask
-            frame_mask = np.reshape(dyn_mat[:, index], (args.height, args.width))
-            bin_mask = np.round(frame_mask)
+            frame_mask = np.reshape(dyn_mat[:, i], (args.height, args.width))
+
+            m = np.max(frame_mask)
+            print(f"m={m}")
+            bin_mask = np.round(frame_mask / m + 0.3)
 
             filled_mask = scipy.ndimage.binary_fill_holes(bin_mask)
 
             plt.imshow(filled_mask, cmap="gray", vmax=1.)
-            plt.show()
-
-            break
+        plt.show()
 
 
 if __name__ == "__main__":

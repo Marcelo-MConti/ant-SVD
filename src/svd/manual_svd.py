@@ -35,9 +35,11 @@ def SVD_decomposition(A, tolerance = 1e-15, maxIterations=6767):
 
     ATA = A.T @ A
 
-    eigenValueSquare, eigenVectors = Jacobi_Decomposition(ATA, tolerance, maxIterations)
+    eigenValueSquare, eigenVectors = Jacobi_Decomposition(ATA, tolerance)
     
     eigenValues = np.sqrt(np.maximum(eigenValueSquare, 0.))
+
+    print("::", eigenValues)
 
     # Ordenar autoVetores respectivamente com seus autoValores
     eigenValues, eigenVectors = Sort_by_eigenvalue_desc(eigenValues, eigenVectors, maxIterations)
