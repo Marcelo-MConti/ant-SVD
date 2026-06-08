@@ -55,4 +55,12 @@ def SVD_decomposition(A, tolerance = 1e-15, maxIterations=6767):
 
     return U, sigma, V.T
 
-
+def Cumulative_variance(eigenValueSquare, k, r):
+    cumulative = 0
+    total = 0
+    for i in range(r):
+        if(i<k):
+            cumulative += eigenValueSquare[i]
+        total += eigenValueSquare[i]
+    
+    return cumulative/total
