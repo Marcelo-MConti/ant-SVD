@@ -1,19 +1,19 @@
 import numpy as np
 
-def Order_Eigen_Parameters(eigenValues, eigenVectors):
+def Sort_by_eigenvalue_desc(eigenValues, eigenVectors):
     idx = np.argsort(eigenValues)[::-1]
     eigenValues = eigenValues[idx]
     eigenVectors = eigenVectors[:, idx]
     return eigenValues, eigenVectors 
 
-def Compute_Rank(eigenValues, tolerance=1e-10):
+def Compute_rank(eigenValues, tolerance=1e-10):
     rank = 0
     for k in range(len(eigenValues)):
         if eigenValues[k] > tolerance:
             rank += 1
     return rank
 
-def Valid_Rank(rank):
+def Valid_rank(rank):
     return rank > 0
 
 def Compute_U_from_svd_components(A, sigma, V, m, rank):
@@ -30,20 +30,20 @@ def Compute_U_from_svd_components(A, sigma, V, m, rank):
 #  U =
 #  Sigma =
 #  V.t = 
-def SVD_Decomposition(A, tolerance = 1e-15, maxIterations=6767):
+def SVD_decomposition(A, tolerance = 1e-15, maxIterations=6767):
 
     ATA = A.T @ A
 
-    eigenValueSquare, eigenVectors = Jacobi_Decomposition(ATA, tolerance, maxIterations)
+    eigenValueSquare, eigenVectors = Jacobi_decomposition(ATA, tolerance, maxIterations)
     
     eigenValues = np.sqrt(np.maximum(eigenValueSquare, 0.))
 
     # Ordenar autoVetores respectivamente com seus autoValores
-    eigenValues, eigenVectors = Order_Eigen_Parameters(eigenValues, eigenVectors)
+    eigenValues, eigenVectors = Sort_by_eigenvalue_desc(eigenValues, eigenVectors)
 
-    rank = Compute_Rank(eigenValues, tolerance)
+    rank = Compute_rank(eigenValues, tolerance)
 
-    if not Valid_Rank(rank): return None
+    if not Valid_rank(rank): return None
 
     # seleção dos rank componentes principais
     sigma = eigenValues[:rank]
