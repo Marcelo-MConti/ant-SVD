@@ -38,7 +38,7 @@ def Calculate_Trigonometric(A: npt.NDArray[np.float64], p: int, q: int) -> tuple
     if abs(big_phi) > 1e-15:
         tang = 1 / (big_phi + np.sign(big_phi) * np.sqrt((big_phi ** 2) + 1))
 
-    cosi = 1 / ((tang ** 2) + 1)
+    cosi = 1 / np.sqrt((tang ** 2) + 1)
     sino = tang * cosi
         
     return (cosi, sino)
