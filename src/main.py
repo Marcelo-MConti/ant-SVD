@@ -151,7 +151,6 @@ def main():
         batch_size = len(frames)
         (orig_height, orig_width, n_chan) = frames[0].shape
 
-        # XXX: Recreating a matrix like this every time is expensive
         frame_mat = np.ndarray(shape=(args.height * args.width, batch_size))
 
         for i in range(batch_size):
