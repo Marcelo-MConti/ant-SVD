@@ -26,6 +26,7 @@
             pkgs.uv
             pkgs.ty
             pkgs.ruff
+            pkgs.ffmpeg
           ];
 
           shellHook = ''
