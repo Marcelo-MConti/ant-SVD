@@ -40,7 +40,7 @@ def SVD_decomposition(A, tolerance = 1e-15, maxIterations=6767):
     eigenValues = np.sqrt(np.maximum(eigenValueSquare, 0.))
 
     # Ordenar autoVetores respectivamente com seus autoValores
-    eigenValues, eigenVectors = Sort_by_eigenvalue_desc(eigenValues, eigenVectors)
+    eigenValues, eigenVectors = Sort_by_eigenvalue_desc(eigenValues, eigenVectors, maxIterations)
 
     rank = Compute_rank(eigenValues, tolerance)
 
