@@ -2,6 +2,7 @@ import argparse
 import itertools
 
 import os
+import time
 import shutil
 
 import numpy as np
@@ -14,7 +15,7 @@ import skimage
 
 import scipy
 
-from svd.manual_svd import SVD_decomposition
+from svd.manual_svd import SVD_decomposition, Cumulative_variance, Compute_rank
 
 
 def main():
@@ -169,10 +170,16 @@ def main():
 
         print("---")
 
+        t1 = time.clock_gettime(time.CLOCK_MONOTONIC)
+
         if args.use_builtin:
             u, s, vt = np.linalg.svd(frame_mat)
         else:
             u, s, vt = SVD_decomposition(frame_mat)
+
+        t2 = time.clock_gettime(time.CLOCK_MONOTONIC)
+
+        print(f"T={t2 - t1}")
 
         print("+++")
 
@@ -181,8 +188,28 @@ def main():
         # Static elements matrix (similar to, but not quite a, background)
         sta_mat = np.zeros_like(frame_mat)
 
-        for i in range(args.k):
-            sta_mat += s[i] * np.outer(u[:, i], vt[i, :])
+        with (
+            open("output/singular.csv", "w") as csv_singular,
+            open("output/cum_var.csv", "w") as csv_cum_var,
+            open("output/rec_err.csv", "w") as csv_rec_err
+        ):
+            rank = Compute_rank(s)
+
+            print("k,sigma_k", file=csv_singular)
+            print("k,V_k", file=csv_cum_var)
+            print("k,E_k", file=csv_rec_err)
+
+            l = np.zeros_like(frame_mat)
+
+            for i in range(batch_size):
+                l += s[i] * np.outer(u[:, i], vt[i, :])
+
+                if i == args.k - 1:
+                    sta_mat = l.copy()
+
+                print(f"{i + 1},{s[i]}", file=csv_singular)
+                print(f"{i + 1},{Cumulative_variance(s, i + 1, rank)}", file=csv_cum_var)
+                print(f"{i + 1},{np.linalg.norm(frame_mat - l, "fro")}", file=csv_rec_err)
 
         dyn_mat = np.abs(frame_mat - sta_mat)
 
