@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 
+
 # find maximum value in symetric matrix aside from the diagonal
 def Find_Max_Symetric(A: npt.NDArray[np.float64]) -> tuple[np.float64, int, int]:
     max = abs(A[0][1])
@@ -10,7 +11,7 @@ def Find_Max_Symetric(A: npt.NDArray[np.float64]) -> tuple[np.float64, int, int]
 
     for i in range(m):
        for j in range(m):
-           if i != j: 
+           if i != j:
                if max < abs(A[i][j]):
                    max = abs(A[i][j])
                    p = i
@@ -18,12 +19,14 @@ def Find_Max_Symetric(A: npt.NDArray[np.float64]) -> tuple[np.float64, int, int]
 
     return (max, p, q)
 
+
 # calculate the cosx and sinx to rotate the matrix A in a way that A[p][q] == 0
 def Calculate_Trigonometric(A: npt.NDArray[np.float64], p: int, q: int) -> tuple[float, float]:
     phi = (A[q][q] - A[p][p]) / (2 * A[p][q])
     tang = 1
     if abs(phi) > 1e-15:
         tang = 1 / (phi + np.sign(phi) * np.sqrt((phi ** 2) + 1))
+
 
     cosx = 1 / np.sqrt((tang ** 2) + 1)
     sinx = tang * cosx

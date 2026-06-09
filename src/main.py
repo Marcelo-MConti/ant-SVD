@@ -81,6 +81,13 @@ def main():
     )
 
     parser.add_argument(
+        "-B", "--write-background",
+        help="Write background images to a file",
+        action="store_true",
+        default=False
+    )
+
+    parser.add_argument(
         "-C", "--chunks",
         help="Number of chunks to process",
         type=int,
@@ -128,10 +135,12 @@ def main():
 
     rm_r("output/masks")
     rm_r("output/videos")
+    rm_r("output/backgrounds")
 
     mkdir("output")
     mkdir("output/masks")
     mkdir("output/videos")
+    mkdir("output/backgrounds")
 
     # Retorna um handle que pode ser usado para montar o vídeo de saída, frame a frame, no formato YUV444P
     video_out = skvideo.io.FFmpegWriter(f"output/videos/{os.path.basename(args.filename)}")
@@ -190,7 +199,7 @@ def main():
             filled_mask_resized = skimage.transform.resize(filled_mask, (orig_height, orig_width))
 
             if args.write_masks:
-                skimage.io.imsave(f"output/masks/{batch_size * cur_chunk + i}.png", filled_mask_resized)
+                skimage.io.imsave(f"output/masks/{args.batch_size * cur_chunk + i}.png", filled_mask_resized)
 
             masked_frame = np.zeros_like(frames[i])
 
@@ -206,6 +215,13 @@ def main():
                 masked_frame[:, :, j] += (int(trans_yuv[j] * 255) * filled_mask_resized).astype(np.uint8)
 
             video_out.writeFrame(masked_frame)
+
+            # NOTE: This has to come in last, because it trashes masked_frame and assumes the mask has already been inverted
+            if args.write_background:
+                for j in range(n_chan):
+                    masked_frame[:, :, j] = frames[i][:, :, j] * filled_mask_resized
+
+                skimage.io.imsave(f"output/backgrounds/{args.batch_size * cur_chunk + i}.png", masked_frame)
 
         cur_chunk += 1
 
