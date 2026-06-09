@@ -8,18 +8,41 @@ separar o fundo de um vídeo das partes dinâmicas (objetos se movendo).
 
 ## Desenvolvimento
 
-A aplicação foi desenvolvida utilizando a linguagem Python e diversas bibliotecas, como NumPy e Scipy.
+A aplicação foi desenvolvida utilizando a linguagem Python e diversas bibliotecas, incluindo:
 
-## Rodar Localmente
+ - NumPy
+ - SciPy
+ - scikit-image
+ - scikit-video
 
-Tendo clonado o repositório em sua máquina, a primeira dependência é ter o gerenciador de pacotes Nix. Para instalá-lo no Ubuntu, use:
+## Instruções de uso
 
-`apt install nix`
+Tendo clonado o repositório em sua máquina, é possível usar o gerenciador de pacotes nix
+para instalar as demais dependências. Para instalá-lo no Ubuntu, use:
+
+```sh
+apt install nix
+```
 
 Após isso, apenas execute:
 
-`./devshell.sh`
+```sh
+./devshell.sh
+```
 
-e isso colocará o terminal em um shell com os pacotes corretamente funcionando. Para executar o programa:
+e isso colocará o terminal em um shell com todas as dependências instaladas. Feito isso,
+o(s) seguinte(s) comando(s) podem ser usados para executar a ferramenta:
 
-`python3 src/main.py input/ants-concrete.webm`
+```sh
+python -m src.ant_svd $OPTIONS $FILE
+# ou
+uvx . $OPTIONS $FILE
+# ou
+uv run ant-svd $OPTIONS $FILE
+```
+
+Onde `$OPTIONS` é uma lista de opções que podem ser passadas para controlar o comportamento
+da ferramenta, cuja documentação pode ser lida ao executar um dos comandos acima com a opção
+`-h` ou `--help`.
+
+Por sua vez, `$FILE` deve ser um arquivo de vídeo que será processado.

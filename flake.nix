@@ -38,7 +38,6 @@
             . .venv/bin/activate
           '';
 
-          PYTHONPATH = "src:src/svd";
           LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.zlib}/lib";
         };
       };

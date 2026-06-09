@@ -15,7 +15,7 @@ import skimage
 
 import scipy
 
-from svd.manual_svd import SVD_decomposition, Cumulative_variance, Compute_rank
+from .svd import SVD_decomposition, Cumulative_variance, Compute_rank
 
 
 def main():

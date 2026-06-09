@@ -1,5 +1,6 @@
 import numpy as np
-from jacob import Jacobi_Decomposition
+
+from .jacobi import Jacobi_Decomposition
 
 def Sort_by_eigenvalue_desc(eigenValues, eigenVectors):
     idx = np.argsort(eigenValues)[::-1]

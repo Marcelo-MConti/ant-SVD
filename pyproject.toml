@@ -12,5 +12,15 @@ dependencies = [
     "scipy>=1.17.1",
 ]
 
+[build-system]
+requires = ["uv_build>=0.11.19,<0.12"]
+build-backend = "uv_build"
+
+[project.scripts]
+ant-svd = "ant_svd:main"
+
+[tool.uv.build-backend]
+module-name = "ant_svd"
+
 [tool.uv.sources]
 scikit-video = { git = "https://github.com/scikit-video/scikit-video.git" }
