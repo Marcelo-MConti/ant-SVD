@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+import argparse
 import itertools
 
 import os
@@ -18,9 +18,10 @@ from svd.manual_svd import SVD_decomposition
 
 
 def main():
-    parser = ArgumentParser(
+    parser = argparse.ArgumentParser(
         prog="ant-svd",
-        description="Remove static background from a video"
+        description="Remove static background from a video",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
     parser.add_argument(
@@ -32,7 +33,7 @@ def main():
 
     parser.add_argument(
         "-c", "--transparent-color",
-        help="Color to replace transparent sections with (RGB hex format)",
+        help="Color to replace transparent sections with",
         type=str,
         default="#ff60d0"
     )
