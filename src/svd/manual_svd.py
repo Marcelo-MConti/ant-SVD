@@ -28,9 +28,7 @@ def Compute_U_from_svd_components(A, sigma, V, m, rank):
 #  entrada:
 #  A = matriz (m, n), m >= n 
 #  saída: 
-#  U =
-#  Sigma =
-#  V.t = 
+#  U, Sigma, V.t 
 def SVD_decomposition(A, tolerance = 1e-15, maxIterations=6767):
 
     ATA = A.T @ A
