@@ -106,7 +106,9 @@ def main():
     g = int(args.transparent_color[3:5], base=16)
     b = int(args.transparent_color[5:7], base=16)
 
-    trans_yuv = skimage.color.rgb2yuv(np.array([[[r, g, b]]], dtype=np.float64) / 255.0)[0, 0, :]
+    trans_yuv = skimage.color.rgb2yuv(
+        np.array([[[r, g, b]]], dtype=np.float64) / 255.0
+    )[0, 0, :]
 
     # Iterador dos frames do vídeo no formato YUV444P
     video_gen = skvideo.io.vreader(args.filename)
@@ -196,11 +198,11 @@ def main():
                 masked_frame[:, :, j] = frames[i][:, :, j] * filled_mask_resized
 
             # Invert the mask
-            # filled_mask = 1 - filled_mask
+            filled_mask_resized = 1 - filled_mask_resized
 
-            # # Replace the background color in the masked frame with args.transparent_color
-            # for j in range(n_chan):
-            #     masked_frame[:, :, j] += np.full((orig_height, orig_width), trans_yuv[j] * 255, dtype=np.uint8) * filled_mask_resized
+            # Replace the background color in the masked frame with args.transparent_color
+            for j in range(n_chan):
+                masked_frame[:, :, j] += (int(trans_yuv[j] * 255) * filled_mask_resized).astype(np.uint8)
 
             video_out.writeFrame(masked_frame)
 
