@@ -2,11 +2,13 @@ import numpy as np
 
 from .jacobi import Jacobi_Decomposition
 
+
 def Sort_by_eigenvalue_desc(eigenValues, eigenVectors):
     idx = np.argsort(eigenValues)[::-1]
     eigenValues = eigenValues[idx]
     eigenVectors = eigenVectors[:, idx]
     return eigenValues, eigenVectors 
+
 
 def Compute_rank(eigenValues, tolerance=1e-10):
     rank = 0
@@ -15,14 +17,17 @@ def Compute_rank(eigenValues, tolerance=1e-10):
             rank += 1
     return rank
 
+
 def Valid_rank(rank):
     return rank > 0
+
 
 def Compute_U_from_svd_components(A, sigma, V, m, rank):
     U = np.zeros((m, rank))
     for i in range(rank):
-        U[:,i] = (A @ V[:,i])/sigma[i]
+        U[:, i] = (A @ V[:, i]) / sigma[i]
     return U
+
 
 # Decomposição SVD 
 #  A = U*sigma*(V.t)
@@ -31,7 +36,6 @@ def Compute_U_from_svd_components(A, sigma, V, m, rank):
 #  saída: 
 #  U, Sigma, V.t 
 def SVD_decomposition(A, tolerance = 1e-15, maxIterations=6767):
-
     ATA = A.T @ A
 
     eigenValueSquare, eigenVectors = Jacobi_Decomposition(ATA, tolerance, maxIterations)
@@ -62,5 +66,5 @@ def Cumulative_variance(eigenValueSquare, k, r):
         if i < k:
             cumulative += eigenValueSquare[i]
         total += eigenValueSquare[i]
-    
+
     return cumulative/total

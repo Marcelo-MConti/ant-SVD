@@ -36,8 +36,6 @@ o(s) seguinte(s) comando(s) podem ser usados para executar a ferramenta:
 ```sh
 python -m src.ant_svd $OPTIONS $FILE
 # ou
-uvx . $OPTIONS $FILE
-# ou
 uv run ant-svd $OPTIONS $FILE
 ```
 

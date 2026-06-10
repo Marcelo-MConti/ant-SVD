@@ -13,9 +13,10 @@ import skvideo.utils
 
 import skimage
 
-import scipy
+from .svd import SVD_decomposition
+from .video import preprocess_chunk, postprocess_mask
 
-from .svd import SVD_decomposition, Cumulative_variance, Compute_rank
+from .utils import logging
 
 
 def main():
@@ -26,8 +27,8 @@ def main():
     )
 
     parser.add_argument(
-        "-b", "--batch-size",
-        help="How many frames are processed per batch",
+        "-n", "--chunk-size",
+        help="How many frames are processed per chunk",
         type=int,
         default=15
     )
@@ -102,11 +103,11 @@ def main():
 
     args = parser.parse_args()
 
-    BATCH_MIN = 15
-    BATCH_MAX = 60
+    CHUNK_SIZE_MIN = 15
+    CHUNK_SIZE_MAX = 60
 
-    if args.batch_size < BATCH_MIN or args.batch_size > BATCH_MAX:
-        raise ValueError(f"Invalid value for batch_size, must be between {BATCH_MIN} and {BATCH_MAX} frames")
+    if args.chunk_size < CHUNK_SIZE_MIN or args.chunk_size > CHUNK_SIZE_MAX:
+        raise ValueError(f"Invalid value for chunk_size, must be between {CHUNK_SIZE_MIN} and {CHUNK_SIZE_MAX} frames")
 
     if args.transparent_color[:1] != "#":
         raise ValueError("Invalid value for transparent_color")
@@ -135,7 +136,6 @@ def main():
             pass
 
     rm_r("output/masks")
-    rm_r("output/videos")
     rm_r("output/backgrounds")
 
     mkdir("output")
@@ -148,28 +148,11 @@ def main():
 
     cur_chunk = 0
 
-    for frames in itertools.batched(video_gen, args.batch_size):
-        batch_size = len(frames)
+    for frames in itertools.batched(video_gen, args.chunk_size):
         (orig_height, orig_width, n_chan) = frames[0].shape
-
-        frame_mat = np.ndarray(shape=(args.height * args.width, batch_size))
-
-        for i in range(batch_size):
-            # frames[i].shape = (height, width, n_chan)
-            #
-            # YUV444P has three channels: Y (luma), U (blue difference), V (green difference)
-            # We only use the luma channel (0) when applying SVD
-            frame_luma = frames[i][:, :, 0]
-            frame_luma_resized = skimage.transform.resize(
-                frame_luma,
-                (args.height, args.width)
-            )
-
-            frame_mat[:, i] = np.reshape(frame_luma_resized / 255, args.height * args.width)
-            print(f"Processed frame {i}")
+        frame_mat = preprocess_chunk(frames, height=args.height, width=args.width)
 
         print("---")
-
         t1 = time.clock_gettime(time.CLOCK_MONOTONIC)
 
         if args.use_builtin:
@@ -178,80 +161,53 @@ def main():
             u, s, vt = SVD_decomposition(frame_mat)
 
         t2 = time.clock_gettime(time.CLOCK_MONOTONIC)
-
         print(f"T={t2 - t1}")
-
         print("+++")
 
-        # Dynamic elements matrix -> mask
-        dyn_mat = np.zeros_like(frame_mat)
+        logging.log_singular_data(frame_mat, u, s, vt, out_dir="output")
+
         # Static elements matrix (similar to, but not quite a, background)
         sta_mat = np.zeros_like(frame_mat)
 
-        with (
-            open("output/singular.csv", "w") as csv_singular,
-            open("output/cum_var.csv", "w") as csv_cum_var,
-            open("output/rec_err.csv", "w") as csv_rec_err
-        ):
-            rank = Compute_rank(s)
+        for i in range(args.k):
+            sta_mat += s[i] * np.outer(u[:, i], vt[i, :])
 
-            print("k,sigma_k", file=csv_singular)
-            print("k,V_k", file=csv_cum_var)
-            print("k,E_k", file=csv_rec_err)
-
-            l = np.zeros_like(frame_mat)
-
-            for i in range(batch_size):
-                l += s[i] * np.outer(u[:, i], vt[i, :])
-
-                if i == args.k - 1:
-                    sta_mat = l.copy()
-
-                print(f"{i + 1},{s[i]}", file=csv_singular)
-                print(f"{i + 1},{Cumulative_variance(s, i + 1, rank)}", file=csv_cum_var)
-                print(f"{i + 1},{np.linalg.norm(frame_mat - l, "fro")}", file=csv_rec_err)
-
+        # Dynamic elements matrix -> mask
         dyn_mat = np.abs(frame_mat - sta_mat)
 
-        for i in range(batch_size):
+        for i in range(len(frames)):
             # Process each frame mask
-            frame_mask = np.reshape(dyn_mat[:, i], (args.height, args.width))
-
-            m = np.max(frame_mask)
-            print(f"m={m}")
-            bin_mask = np.round(frame_mask * (0.5 / args.threshold) / m)
-
-            filled_mask = scipy.ndimage.binary_fill_holes(bin_mask)
-            filled_mask_resized = skimage.transform.resize(filled_mask, (orig_height, orig_width))
+            mask = np.reshape(dyn_mat[:, i], (args.height, args.width))
+            mask = postprocess_mask(mask, args.threshold, orig_height, orig_width)
 
             if args.write_masks:
-                skimage.io.imsave(f"output/masks/{args.batch_size * cur_chunk + i}.png", filled_mask_resized)
+                skimage.io.imsave(f"output/masks/{args.chunk_size * cur_chunk + i}.png", mask)
 
             masked_frame = np.zeros_like(frames[i])
 
-            # Convolve/Apply the mask to the frame to remove the background
+            # Apply the mask to the frame to remove the background (elementwise multiplication)
             for j in range(n_chan):
-                masked_frame[:, :, j] = frames[i][:, :, j] * filled_mask_resized
+                masked_frame[:, :, j] = frames[i][:, :, j] * mask
 
             # Invert the mask
-            filled_mask_resized = 1 - filled_mask_resized
+            mask = 1 - mask
 
             # Replace the background color in the masked frame with args.transparent_color
             for j in range(n_chan):
-                masked_frame[:, :, j] += (int(trans_yuv[j] * 255) * filled_mask_resized).astype(np.uint8)
+                masked_frame[:, :, j] += (int(trans_yuv[j] * 255) * mask).astype(np.uint8)
 
             video_out.writeFrame(masked_frame)
 
             # NOTE: This has to come in last, because it trashes masked_frame and assumes the mask has already been inverted
             if args.write_background:
                 for j in range(n_chan):
-                    masked_frame[:, :, j] = frames[i][:, :, j] * filled_mask_resized
+                    masked_frame[:, :, j] = frames[i][:, :, j] * mask
 
-                skimage.io.imsave(f"output/backgrounds/{args.batch_size * cur_chunk + i}.png", masked_frame)
+                skimage.io.imsave(f"output/backgrounds/{args.chunk_size * cur_chunk + i}.png", masked_frame)
 
         cur_chunk += 1
 
-        if cur_chunk > args.chunks:
+        if cur_chunk >= args.chunks:
             break
 
     video_out.close()
