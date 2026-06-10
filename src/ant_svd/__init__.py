@@ -173,7 +173,7 @@ def main():
         t1 = time.clock_gettime(time.CLOCK_MONOTONIC)
 
         if args.use_builtin:
-            u, s, vt = np.linalg.svd(frame_mat)
+            u, s, vt = np.linalg.svd(frame_mat, full_matrices=False)
         else:
             u, s, vt = SVD_decomposition(frame_mat)
 
