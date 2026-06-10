@@ -17,6 +17,8 @@ A aplicação foi desenvolvida utilizando a linguagem Python e diversas bibliote
 
 ## Instruções de uso
 
+### Instalando as dependências
+
 Tendo clonado o repositório em sua máquina, é possível usar o gerenciador de pacotes nix
 para instalar as demais dependências. Para instalá-lo no Ubuntu, use:
 
@@ -30,8 +32,22 @@ Após isso, apenas execute:
 ./devshell.sh
 ```
 
-e isso colocará o terminal em um shell com todas as dependências instaladas. Feito isso,
-o(s) seguinte(s) comando(s) podem ser usados para executar a ferramenta:
+O comando acima colocará o terminal em um shell com todas as dependências instaladas.
+
+Uma opção alternativa (que não requer o nix):
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# ou
+pip install uv
+
+uv sync .
+. .venv/bin/activate
+```
+
+### Execução
+
+Feito isso, um dos comandos a seguir pode ser usados para executar a ferramenta:
 
 ```sh
 python -m src.ant_svd $OPTIONS $FILE
