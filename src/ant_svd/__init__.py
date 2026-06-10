@@ -1,3 +1,5 @@
+import sys
+from pathlib import Path
 import argparse
 import itertools
 
@@ -98,7 +100,8 @@ def main():
 
     parser.add_argument(
         "filename",
-        help="Path to a video file to be processed"
+        help="Path to a video file to be processed",
+        type=Path
     )
 
     args = parser.parse_args()
@@ -120,8 +123,13 @@ def main():
         np.array([[[r, g, b]]], dtype=np.float64) / 255.0
     )[0, 0, :]
 
+    filename: Path = args.filename
+
+    metadata = skvideo.io.ffprobe(filename)
+    frame_rate = metadata["video"]["@avg_frame_rate"]
+
     # Iterador dos frames do vídeo no formato YUV444P
-    video_gen = skvideo.io.vreader(args.filename)
+    video_gen = skvideo.io.vreader(filename)
 
     def rm_r(path):
         try:
@@ -144,7 +152,18 @@ def main():
     mkdir("output/backgrounds")
 
     # Retorna um handle que pode ser usado para montar o vídeo de saída, frame a frame, no formato YUV444P
-    video_out = skvideo.io.FFmpegWriter(f"output/videos/{os.path.basename(args.filename)}")
+    video_out = skvideo.io.FFmpegWriter(
+        f"output/videos/{os.path.basename(filename.stem)}.mp4",
+        inputdict={
+            "-r": frame_rate,
+            "-hwaccel": "auto"
+        },
+        outputdict={
+            "-vcodec": "libx264",
+            "-crf": "10",
+            "-preset": "slow"
+        }
+    )
 
     cur_chunk = 0
 
