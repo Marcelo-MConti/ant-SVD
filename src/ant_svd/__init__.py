@@ -1,11 +1,14 @@
-import sys
-from pathlib import Path
 import argparse
 import itertools
 
+import gc
+
 import os
+import sys
 import time
 import shutil
+
+from pathlib import Path
 
 import numpy as np
 
@@ -99,6 +102,13 @@ def main():
     )
 
     parser.add_argument(
+        "-x", "--trace",
+        help="Trace mode: do only the SVD decomposition of the first chunk and exit.",
+        action="store_true",
+        default=False
+    )
+
+    parser.add_argument(
         "filename",
         help="Path to a video file to be processed",
         type=Path
@@ -107,7 +117,7 @@ def main():
     args = parser.parse_args()
 
     CHUNK_SIZE_MIN = 15
-    CHUNK_SIZE_MAX = 60
+    CHUNK_SIZE_MAX = 150
 
     if args.chunk_size < CHUNK_SIZE_MIN or args.chunk_size > CHUNK_SIZE_MAX:
         raise ValueError(f"Invalid value for chunk_size, must be between {CHUNK_SIZE_MIN} and {CHUNK_SIZE_MAX} frames")
@@ -169,7 +179,17 @@ def main():
 
     for frames in itertools.batched(video_gen, args.chunk_size):
         (orig_height, orig_width, n_chan) = frames[0].shape
+
         frame_mat = preprocess_chunk(frames, height=args.height, width=args.width)
+
+        if args.trace:
+            del frames
+            del video_gen
+
+            gc.collect()
+
+            print(":::", flush=True)
+            time.sleep(5)
 
         print("---")
         t1 = time.clock_gettime(time.CLOCK_MONOTONIC)
@@ -182,6 +202,9 @@ def main():
         t2 = time.clock_gettime(time.CLOCK_MONOTONIC)
         print(f"T={t2 - t1}")
         print("+++")
+
+        if args.trace:
+            sys.exit(120)
 
         logging.log_singular_data(frame_mat, u, s, vt, out_dir="output")
 
