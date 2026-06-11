@@ -36,12 +36,14 @@ grep -m 1 -- ':::' < "$FIFO" && (
     kill -USR1 $PYPID
 
     while [ -d /proc/$PYPID ]; do
-        awk '/Private/{ sum += $2 } END { print sum }' /proc/$PYPID/smaps
+        awk '/Private/{ sum += $2 } END { print sum }' /proc/$PYPID/smaps || break
         sleep 0.01
     done > "$LOG"
 
     wait
 )
+
+sed -i '/^$/d' "$LOG"
 
 min=$(sort -h < "$LOG" | head -n 1)
 max=$(sort -h < "$LOG" | tail -n 1)
