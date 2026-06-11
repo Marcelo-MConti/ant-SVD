@@ -6,3 +6,4 @@ build/
 output/*
 perf.data*
 heaptrack.*.*.zst
+mem.*.log
