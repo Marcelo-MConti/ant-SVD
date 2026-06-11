@@ -17,33 +17,36 @@
 set -e
 
 FIFO=$(mktemp -u)
-LOG=$(mktemp -u)
 
 mkfifo "$FIFO"
 
-trap -- 'rm -f "$FIFO" "$LOG"' EXIT 
+trap -- 'rm -f "$FIFO"' EXIT 
 
 PYTHON=$(command -v python3 python | head -n 1)
 
 "$PYTHON" -m src.ant_svd -x "$@" > "$FIFO" &
 PYPID=$!
 
-echo "$PYPID"
+LOG=mem.$PYPID.log
+
+echo "PID: $PYPID"
 
 grep -m 1 -- ':::' < "$FIFO" && (
+    cat < "$FIFO" >/dev/null &
+    kill -USR1 $PYPID
+
     while [ -d /proc/$PYPID ]; do
         awk '/Private/{ sum += $2 } END { print sum }' /proc/$PYPID/smaps
         sleep 0.01
     done > "$LOG"
+
+    wait
 )
 
-baseline=$(head -n 1 "$LOG")
-at_start=1
+min=$(sort -h < "$LOG" | head -n 1)
+max=$(sort -h < "$LOG" | tail -n 1)
 
-while read -r measurement; do
-    # Last line may be empty
-    [ -z "$measurement" ] && break
-    
-    [ $measurement -ne $baseline ] && unset at_start
-    [ -z "$at_start" ] && echo "$((measurement - baseline))"
-done < "$LOG" > mem.$PYPID.log
+echo "MIN: $min kB"
+echo "MAX: $max kB"
+
+echo "PEAK MEM USAGE: $((max - min)) kB"

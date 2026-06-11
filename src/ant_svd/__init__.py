@@ -1,3 +1,4 @@
+from types import FrameType
 import argparse
 import itertools
 
@@ -6,6 +7,7 @@ import gc
 import os
 import sys
 import time
+import signal
 import shutil
 
 from pathlib import Path
@@ -22,6 +24,10 @@ from .svd import SVD_decomposition
 from .video import preprocess_chunk, postprocess_mask
 
 from .utils import logging
+
+
+def handle_timeout(_x: int, _f: FrameType | None):
+    raise TimeoutError()
 
 
 def main():
@@ -177,6 +183,9 @@ def main():
 
     cur_chunk = 0
 
+    if args.trace:
+        signal.signal(signal.SIGUSR1, handle_timeout)
+
     for frames in itertools.batched(video_gen, args.chunk_size):
         (orig_height, orig_width, n_chan) = frames[0].shape
 
@@ -188,8 +197,11 @@ def main():
 
             gc.collect()
 
-            print(":::", flush=True)
-            time.sleep(5)
+            try:
+                print(":::", flush=True)
+                time.sleep(100)
+            except TimeoutError:
+                pass
 
         print("---")
         t1 = time.clock_gettime(time.CLOCK_MONOTONIC)
