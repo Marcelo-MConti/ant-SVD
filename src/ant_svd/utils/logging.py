@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..svd import Compute_rank, Cumulative_variance
+from ..svd import Compute_Rank, Cumulative_Variance
 
 
 def log_singular_data(
@@ -14,7 +14,7 @@ def log_singular_data(
         open(f"{out_dir}/cum_var.csv", "w") as csv_cum_var,
         open(f"{out_dir}/rec_err.csv", "w") as csv_rec_err
     ):
-        rank = Compute_rank(s)
+        rank = Compute_Rank(s)
 
         print("k,sigma_k", file=csv_singular)
         print("k,V_k", file=csv_cum_var)
@@ -27,5 +27,5 @@ def log_singular_data(
             l += s[i] * np.outer(u[:, i], vt[i, :])
 
             print(f"{i + 1},{s[i]}", file=csv_singular)
-            print(f"{i + 1},{Cumulative_variance(s, i + 1, rank)}", file=csv_cum_var)
+            print(f"{i + 1},{Cumulative_Variance(s, i + 1, rank)}", file=csv_cum_var)
             print(f"{i + 1},{np.linalg.norm(frame_mat - l, "fro")}", file=csv_rec_err)

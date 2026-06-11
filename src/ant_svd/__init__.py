@@ -20,7 +20,7 @@ import skvideo.utils
 
 import skimage
 
-from .svd import SVD_decomposition
+from .svd import SVD_Decomposition
 from .video import preprocess_chunk, postprocess_mask
 
 from .utils import logging
@@ -209,7 +209,7 @@ def main():
         if args.use_builtin:
             u, s, vt = np.linalg.svd(frame_mat, full_matrices=False)
         else:
-            u, s, vt = SVD_decomposition(frame_mat)
+            u, s, vt = SVD_Decomposition(frame_mat)
 
         t2 = time.clock_gettime(time.CLOCK_MONOTONIC)
         print(f"T={t2 - t1}")
