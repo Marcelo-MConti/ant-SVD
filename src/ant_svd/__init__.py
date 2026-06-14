@@ -170,13 +170,14 @@ def main():
     # Retorna um handle que pode ser usado para montar o vídeo de saída, frame a frame, no formato YUV444P
     video_out = skvideo.io.FFmpegWriter(
         f"output/videos/{os.path.basename(filename.stem)}.mp4",
+        audiosrc=filename,
         inputdict={
             "-r": frame_rate,
             "-hwaccel": "auto"
         },
         outputdict={
             "-vcodec": "libx264",
-            "-crf": "10",
+            "-crf": "24",
             "-preset": "slow"
         }
     )
