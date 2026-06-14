@@ -144,8 +144,23 @@ def main():
     metadata = skvideo.io.ffprobe(filename)
     frame_rate = metadata["video"]["@avg_frame_rate"]
 
+    transpose_map = {
+        "0": {},
+        "-90": {"-vf": "transpose=1"},
+        "-180": {"-vf": 2 * "transpose=1"},
+        "-270": {"-vf": "transpose=0"},
+        "90": {"-vf": "transpose=0"},
+        "180": {"-vf": 2 * "transpose=0"},
+        "270": {"-vf": "transpose=1"}
+    }
+
+    try:
+        rotation = str(next(filter(lambda x: x["@key"] == "rotation", metadata["video"]["side_data_list"]["side_data"]["side_datum"]), {"@value": 0})["@value"])
+    except KeyError:
+        rotation = str(0)
+
     # Iterador dos frames do vídeo no formato YUV444P
-    video_gen = skvideo.io.vreader(filename)
+    video_gen = skvideo.io.vreader(filename, outputdict=transpose_map[rotation])
 
     def rm_r(path):
         try:
@@ -167,13 +182,18 @@ def main():
     mkdir("output/videos")
     mkdir("output/backgrounds")
 
+    if "audio" in metadata:
+        extra_args = {"audiosrc": filename}
+    else:
+        extra_args = {}
+
     # Retorna um handle que pode ser usado para montar o vídeo de saída, frame a frame, no formato YUV444P
     video_out = skvideo.io.FFmpegWriter(
         f"output/videos/{os.path.basename(filename.stem)}.mp4",
-        audiosrc=filename,
         inputdict={
             "-r": frame_rate,
-            "-hwaccel": "auto"
+            "-hwaccel": "auto",
+            "-display_rotation": str(-int(rotation))
         },
         outputdict={
             "-vcodec": "libx264",
@@ -181,7 +201,8 @@ def main():
             "-preset": "slow",
             "-pix_fmt": "yuv420p",
             "-profile:v": "baseline"
-        }
+        },
+        **extra_args
     )
 
     cur_chunk = 0
