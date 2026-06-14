@@ -178,7 +178,9 @@ def main():
         outputdict={
             "-vcodec": "libx264",
             "-crf": "24",
-            "-preset": "slow"
+            "-preset": "slow",
+            "-pix_fmt": "yuv420p",
+            "-profile:v": "baseline"
         }
     )
 
